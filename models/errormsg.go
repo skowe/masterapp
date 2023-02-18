@@ -8,4 +8,5 @@ type ApiError struct {
 	ErrorCode    int    `json:"error_code"`
 	ErrorMessage string `json:"error_message"`
 	ErrorType    string `json:"error_type"`
+	Info         string `json:"info,omitempty"`
 }

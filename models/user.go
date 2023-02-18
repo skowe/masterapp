@@ -8,5 +8,5 @@ type User struct {
 	// Šifra se prima u plaintext formatu kada stiže od klijent aplikacije
 	// Šifra se po primanju hešuje i čuva u bazi
 	// Tekst kojim se šifra hešuje je sačuvan u bazi ali se nigde ne šalje
-	Password string `json:"password"`
+	Password string `json:"password,omitempty"`
 }
