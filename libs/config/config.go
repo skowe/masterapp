@@ -14,6 +14,7 @@ func Configure(envVars []string) map[string]string {
 	return env
 }
 
+// Logika za postavku vrednosti za promenljive Okruženja
 func setVar(varName string) string {
 	val, ok := os.LookupEnv(varName)
 
