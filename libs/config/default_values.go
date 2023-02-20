@@ -4,7 +4,7 @@ package config
 const (
 	DB_HOST = "DB_HOST"
 	DB_PORT = "DB_PORT"
-	DB_NAME = "DB_TEST"
+	DB_NAME = "DB_NAME"
 	DB_USER = "DB_USER"
 	DB_PASS = "DB_PASS"
 )
