@@ -67,12 +67,12 @@ func (reg *RegistrationHandle) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			encoder.Encode(encodeData)
 			return
 		}
-		selectFmt := "SELECT username, email FROM users WHERE username = %s OR email = %s"
-		selectQuery := fmt.Sprintf(selectFmt, data.Username, data.Email)
+		selectQuery := "SELECT username, email FROM users WHERE username = ? OR email = ?"
 
-		res, err := database.Query(selectQuery)
+		res, err := database.Query(selectQuery, data.Username, data.Email)
 
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			encodeData := &models.ApiError{
 				ErrorCode:    http.StatusInternalServerError,
@@ -90,10 +90,10 @@ func (reg *RegistrationHandle) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				ErrorMessage: "Error 303: See other",
 				ErrorType:    "see other",
 			}
-			chk := make(map[string]string)
+			chk := models.User{}
 			w.WriteHeader(http.StatusSeeOther) // Prepravi ApiError Model, treba da sadrzi polje extra info
-			res.Scan(&chk)
-			if chk["email"] == data.Email {
+			res.Scan(&(chk.Username), &(chk.Email))
+			if chk.Email == data.Email {
 				apiError.Info = "The e-mail entered is already in use"
 			} else {
 				apiError.Info = "The username entered is already in use"
@@ -103,9 +103,9 @@ func (reg *RegistrationHandle) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		queryFmt := "INSERT INTO users(username, email, password) VALUES(%s, %s, %s)"
-		query := fmt.Sprintf(queryFmt, data.Username, data.Email, data.Password)
-		_, err = database.Exec(query)
+		query := "INSERT INTO users(username, email, password) VALUES(?, ?, ?)"
+
+		_, err = database.Exec(query, data.Username, data.Email, data.Password)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
