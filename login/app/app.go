@@ -1,5 +1,11 @@
 package app
 
-func StartApp(){
-	http.Handle("/login", )
+import (
+	"net/http"
+
+	"github.com/skowe/masterapp/login/controler"
+)
+
+func StartApp() {
+	http.Handle("/login", controler.New())
 }
