@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,6 +15,8 @@ import (
 const (
 	SESSION_HOST_ADDRESS = "SESSION_HOST_ADDRESS"
 )
+
+var ErrorConnection = errors.New("failed to connect to the database")
 
 type LoginHandle struct {
 	DbHost      string
@@ -39,6 +42,7 @@ func (l *LoginHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responseEncoder := json.NewEncoder(w)
 
 	user, err := extractUserFromRequest(r)
+
 	if err != nil {
 		responseEncoder.Encode(&models.ApiError{
 			ErrorCode:    http.StatusBadRequest,
@@ -48,18 +52,54 @@ func (l *LoginHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	err = Login(user, l)
 
-	sessionResponse, err := GetSessionParams(user, l)
 	if err != nil {
-		responseEncoder.Encode(&models.ApiError{
-			ErrorCode:    http.StatusInternalServerError,
-			ErrorMessage: "Error 500: internaln server error",
-			ErrorType:    "internaln server error",
-			Info:         "Failed to create a session",
-		})
+		if err != ErrorConnection {
+			responseEncoder.Encode(&models.ApiError{
+				ErrorCode:    http.StatusUnauthorized,
+				ErrorMessage: "Error 401: unauthorized",
+				ErrorType:    "unauthorized",
+				Info:         "Provided credidentials are invalid",
+			})
+		} else {
+			responseEncoder.Encode(&models.ApiError{
+				ErrorCode:    http.StatusInternalServerError,
+				ErrorMessage: "Error 500: internal server error",
+				ErrorType:    "internal server error",
+				Info:         "Failed to connect to the users database",
+			})
+		}
 		return
 	}
-	sessionDecoder := json.NewDecoder(sessionResponse.Body)
+	user.Password = ""
+	responseEncoder.Encode(user)
+
+}
+
+func Login(u *models.User, l *LoginHandle) error {
+
+	selectQuery := "SELECT password FROM users WHERE username = ? OR email = ?"
+
+	db, err := l.Open()
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.Query(selectQuery, u.Username, u.Password)
+	if err != nil {
+		return err
+	}
+	if rows.Next() {
+		var pass string
+		rows.Scan(&pass)
+		if pass != u.Password {
+			return errors.New("credidential missmatch")
+		}
+	} else {
+		return errors.New("credidential missmatch")
+	}
+	return nil
 }
 
 func New() *LoginHandle {
@@ -90,6 +130,9 @@ func extractUserFromRequest(r *http.Request) (*models.User, error) {
 
 func GetSessionParams(user *models.User, l *LoginHandle) (*http.Response, error) {
 	userEncoded, err := json.MarshalIndent(user, "", "\t")
+	if err != nil {
+		return nil, err
+	}
 	// Ovde je neophodno napraviti pozeljni reader objekat za post metod ka session menadzeru
 	RequestBody := bytes.NewReader(userEncoded)
 	return http.Post(l.SessionHost+"/start", "application/json", RequestBody)
