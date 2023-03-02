@@ -8,7 +8,8 @@ import (
 )
 
 func StartApp() {
-	http.Handle("/register", controler.New())
+	handler := controler.New()
+	http.Handle("/register", handler)
 
 	log.Println(http.ListenAndServe(":8080", nil))
 }
