@@ -1,2 +1,4 @@
 github.com/skowe/masterapp/libs v0.2.3 h1:aP2uSV6HrfIhdqKCFfRZDXvUcQNsjqT9O5GQxLD2RZA=
 github.com/skowe/masterapp/libs v0.2.3/go.mod h1:GW277bUgHt846i/TeBTOCRae857O7F1Qavu01JHFGlE=
+github.com/skowe/masterapp/models v0.1.1 h1:FemI06utLsi3ANVkOz2eCvOthC3rx6BHZ4s3h4u/Zck=
+github.com/skowe/masterapp/models v0.1.1/go.mod h1:R7iO5Ju2CxW3lelW5TH+0ENs3v1xjoJ6sv3KnpC+jvQ=
