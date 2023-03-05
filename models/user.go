@@ -2,8 +2,8 @@ package models
 
 type User struct {
 	UID      int    `json:"uid,omitempty"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
+	Email    string `json:"email,omitempty"`
+	Username string `json:"username,omitempty"`
 
 	// Šifra se prima u plaintext formatu kada stiže od klijent aplikacije
 	// Šifra se po primanju hešuje i čuva u bazi
