@@ -1,7 +1,6 @@
 package controler
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -133,14 +132,4 @@ func extractUserFromRequest(r *http.Request) (*models.User, error) {
 	defer r.Body.Close()
 
 	return user, nil
-}
-
-func GetSessionParams(user *models.User, l *LoginHandle) (*http.Response, error) {
-	userEncoded, err := json.MarshalIndent(user, "", "\t")
-	if err != nil {
-		return nil, err
-	}
-	// Ovde je neophodno napraviti pozeljni reader objekat za post metod ka session menadzeru
-	RequestBody := bytes.NewReader(userEncoded)
-	return http.Post(l.SessionHost+"/start", "application/json", RequestBody)
 }
