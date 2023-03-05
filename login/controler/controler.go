@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/skowe/masterapp/libs/config"
 	"github.com/skowe/masterapp/models"
 )
@@ -52,8 +54,8 @@ func (l *LoginHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	err = Login(user, l)
-
+	user, err = Login(user, l)
+	log.Println(err)
 	if err != nil {
 		if err != ErrorConnection {
 			responseEncoder.Encode(&models.ApiError{
@@ -72,34 +74,38 @@ func (l *LoginHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	user.Password = ""
 	responseEncoder.Encode(user)
 
 }
 
-func Login(u *models.User, l *LoginHandle) error {
+func Login(u *models.User, l *LoginHandle) (*models.User, error) {
 
-	selectQuery := "SELECT password FROM users WHERE username = ? OR email = ?"
-
+	selectQuery := "SELECT username, email, password FROM users WHERE username = ? OR email = ?"
+	resU := &models.User{}
 	db, err := l.Open()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	rows, err := db.Query(selectQuery, u.Username, u.Password)
+	rows, err := db.Query(selectQuery, u.Username, u.Email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if rows.Next() {
-		var pass string
-		rows.Scan(&pass)
+		var username, email, pass string
+		rows.Scan(&username, &email, &pass)
 		if pass != u.Password {
-			return errors.New("credidential missmatch")
+			log.Println("bad password")
+			return nil, errors.New("bad password")
 		}
+
+		resU.Username = username
+		resU.Email = email
 	} else {
-		return errors.New("credidential missmatch")
+		log.Println("No user")
+		return nil, errors.New("no user")
 	}
-	return nil
+	return resU, nil
 }
 
 func New() *LoginHandle {
@@ -121,6 +127,7 @@ func extractUserFromRequest(r *http.Request) (*models.User, error) {
 	user := &models.User{}
 	err := decoder.Decode(user)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	defer r.Body.Close()
