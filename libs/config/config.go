@@ -5,11 +5,18 @@ import "os"
 // Promenljive definisane u okviru ovog paketa će biti postavljene na svoje podrazumevane vrednosti
 // ako vrednosti nisu postavljene u okruženju.
 // ostale vrednosti iz isečka koje sluze za postacku će biti pročitane iz okruženja ili postavljene na prazan string
-func Configure(envVars []string) map[string]string {
-	env := make(map[string]string)
 
-	for _, varName := range envVars {
-		env[varName] = setVar(varName)
+// Objekat konfiguracije iz okruzenaja prati singleton šablon kako bi se obezbedilo da konfiguracija jednom ucitana ostane ne promenljiva
+
+var env map[string]string = nil
+
+func Configure(envVars []string) map[string]string {
+
+	if env == nil {
+		env = make(map[string]string)
+		for _, varName := range envVars {
+			env[varName] = setVar(varName)
+		}
 	}
 	return env
 }
@@ -28,4 +35,8 @@ func setVar(varName string) string {
 	default:
 		return ""
 	}
+}
+
+func FreeConf() {
+	env = nil
 }
