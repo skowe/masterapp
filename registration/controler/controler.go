@@ -20,11 +20,6 @@ type RegistrationHandle struct {
 	DbPass string
 }
 
-// Vraća isecak u redosledu user, password, host, port, db
-func (reg *RegistrationHandle) Slice() []string {
-	return []string{reg.DbUser, reg.DbPass, reg.DbHost, reg.DbPort, reg.DbName}
-}
-
 func (reg *RegistrationHandle) Open() (*sql.DB, error) {
 	dbConnFmt := "%s:%s@tcp(%s:%s)/%s"
 	dbConnString := fmt.Sprintf(dbConnFmt, reg.DbUser, reg.DbPass, reg.DbHost, reg.DbPort, reg.DbName)
